@@ -10,6 +10,7 @@ import jakarta.persistence.Column;
 
 @Entity
 public class User {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -24,18 +25,22 @@ public class User {
     @Column(nullable = false)
     private Role role;
 
-    @Column(nullable = false, unique = true)  // New field with unique constraint
-    private String username;
+    @Column(nullable = false)  // Changed from unique to non-unique for 'name'
+    private String name;  // Renamed from username to name
+
+    @Column(nullable = false)  // New field 'course'
+    private String course;  // Added new 'course' field
 
     // Constructors
     public User() {
     }
 
-    public User(String email, String password, Role role, String username) {
+    public User(String email, String password, Role role, String name, String course) {
         this.email = email;
         this.password = password;
         this.role = role;
-        this.username = username;
+        this.name = name;
+        this.course = course;
     }
 
     // Getters and Setters
@@ -55,8 +60,12 @@ public class User {
         return role;
     }
 
-    public String getUsername() {
-        return username;
+    public String getName() {
+        return name;
+    }
+
+    public String getCourse() {
+        return course;
     }
 
     public void setId(Long id) {
@@ -75,12 +84,11 @@ public class User {
         this.role = role;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    // public boolean isPresent() {
-    //     // TODO Auto-generated method stub
-    //     throw new UnsupportedOperationException("Unimplemented method 'isPresent'");
-    // }
+    public void setCourse(String course) {
+        this.course = course;
+    }
 }

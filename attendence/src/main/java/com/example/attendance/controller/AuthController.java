@@ -1,9 +1,9 @@
 package com.example.attendance.controller;
 
-import com.example.attendance.Util.JwtUtil;
 import com.example.attendance.model.Role;
 import com.example.attendance.model.User;
 import com.example.attendance.repository.UserRepository;
+import com.example.attendance.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -22,44 +22,39 @@ public class AuthController {
     private UserRepository userRepository;
 
     @Autowired
-    private JwtUtil jwtUtil;
+    private UserService userService;
 
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
 
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> login(@RequestBody User user) {
-        System.out.println("Received login request for email: " + user.getEmail());
+        Map<String, Object> response = new HashMap<>();
 
-        // Find user by email (returns Optional<User>)
-        Optional<User> foundUserOpt = userRepository.findByEmail(user.getEmail());
-        
-        if (!foundUserOpt.isPresent()) {
-            System.out.println("User not found for email: " + user.getEmail());
-            return ResponseEntity.status(401).body(Map.of("message", "Invalid credentials"));
+        // Fetch user by email
+        Optional<User> existingUserOpt = userRepository.findByEmail(user.getEmail());
+        if (existingUserOpt.isEmpty()) {
+            response.put("message", "User not found");
+            return ResponseEntity.status(404).body(response);
         }
 
-        User foundUser = foundUserOpt.get();  // Get the user from the Optional
+        User existingUser = existingUserOpt.get();
 
-        System.out.println("Stored password hash: " + foundUser.getPassword());
-        System.out.println("Entered password: " + user.getPassword());
-
-        // Check password
-        if (passwordEncoder.matches(user.getPassword(), foundUser.getPassword())) {
-            System.out.println("Password matches!");
-            String token = jwtUtil.generateToken(foundUser.getEmail());
-
-            Map<String, Object> response = new HashMap<>();
-            response.put("message", "Login successful");
-            response.put("token", token);
-            response.put("id", foundUser.getId());
-            response.put("role", foundUser.getRole());
-            System.out.println("Generated token: " + token);
-            return ResponseEntity.ok(response);
-        } else {
-            System.out.println("Passwords do not match.");
-            return ResponseEntity.status(401).body(Map.of("message", "Invalid credentials"));
+        // Check if password matches
+        if (!passwordEncoder.matches(user.getPassword(), existingUser.getPassword())) {
+            response.put("message", "Invalid credentials");
+            return ResponseEntity.status(401).body(response);
         }
+
+        // Generate a mock token (for demonstration purposes)
+        String token = "mock-token-for-" + existingUser.getEmail();
+
+        // Prepare the response
+        response.put("message", "Login successful");
+        response.put("token", token);
+        response.put("role", existingUser.getRole()); // Include role in response
+        response.put("email", existingUser.getEmail());
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/register")
@@ -67,8 +62,7 @@ public class AuthController {
         Map<String, Object> response = new HashMap<>();
 
         // Check if email already exists
-        Optional<User> existingUserOpt = userRepository.findByEmail(user.getEmail());
-        if (existingUserOpt.isPresent()) {
+        if (userService.emailExists(user.getEmail())) {
             response.put("message", "Email already exists");
             return ResponseEntity.status(409).body(response);
         }
@@ -87,6 +81,14 @@ public class AuthController {
             user.setRole(Role.USER); // Default role
         }
 
+        // Set course only if the role is USER
+        if (user.getRole() == Role.USER && user.getCourse() == null) {
+            response.put("message", "Course must be specified for users.");
+            return ResponseEntity.status(400).body(response);
+        } else if (user.getRole() == Role.ADMIN) {
+            user.setCourse(null); // Ensure course is null for admins
+        }
+
         // Hash password and save user
         String hashedPassword = passwordEncoder.encode(user.getPassword());
         user.setPassword(hashedPassword);
@@ -94,12 +96,5 @@ public class AuthController {
 
         response.put("message", "Registration successful");
         return ResponseEntity.ok(response);
-    }
-
-    @GetMapping("/check-admin")
-    public ResponseEntity<Boolean> checkAdminExists() {
-        Optional<User> adminOpt = userRepository.findByRole("ADMIN");
-        boolean adminExists = adminOpt.isPresent();
-        return ResponseEntity.ok(adminExists);
     }
 }

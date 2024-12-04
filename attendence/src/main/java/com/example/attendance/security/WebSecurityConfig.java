@@ -99,7 +99,7 @@ public class WebSecurityConfig {
                         .requestMatchers("/api/check-admin", "/error").permitAll()
 
                         // Admin endpoints (restricted to ROLE_ADMIN)
-                        .requestMatchers(HttpMethod.GET, "/admin/users","/admin/user/*", "/admin/attendance/all", "/admin/absentees", "/admin/leaves","/error").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/admin/users","/admin/user/*", "/admin/attendance/all", "/admin/absentees", "/admin/leaves","/admin/users/count","/error").permitAll()
                         .requestMatchers(HttpMethod.PUT, "/admin/leave/approve/**").permitAll()
 
                         // Default rule: authenticate all other requests
