@@ -17,6 +17,7 @@ public class AttendanceService {
     private AttendanceRepository attendanceRepository;
 
     public void saveAttendance(AttendanceData attendanceData) {
+         attendanceData.setInstituteId(instituteId);
         attendanceRepository.save(attendanceData);
     }
 
@@ -60,6 +61,15 @@ public class AttendanceService {
     public List<User> findAbsenteesExcludingAdmins(String date) {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'findAbsenteesExcludingAdmins'");
+    }
+
+     public AttendanceData findLatestAttendanceForUserOnDate(Integer userId) {
+        // Get today's date without time
+        LocalDate today = LocalDate.now();
+
+        // Fetch the latest attendance record for the given user, institute, and today's
+        // date
+        return attendanceRepository.findTopByUserIdAndLoginDateOrderByLoginTimeDesc(userId, today);
     }
 }
 
