@@ -26,7 +26,7 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Excepti
             .csrf(csrf -> csrf.disable()) // Disable CSRF for development
             .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Configure CORS
             .authorizeRequests(auth -> auth
-                    .requestMatchers(HttpMethod.POST, "/api/login", "/api/register", "/api/attendance/add", "/api/check-admin", "/error").permitAll() // Permit these endpoints
+                    .requestMatchers(HttpMethod.POST, "/api/login", "/api/register", "/api/attendance/add", "/api/check-admin", "/api/attendance/determine" , "/error").permitAll() // Permit these endpoints
                     .requestMatchers("/admin/**").hasRole("ADMIN") // Ensure only admins can access "/admin/**"
                     .anyRequest().authenticated() // All other requests need authentication
             )
